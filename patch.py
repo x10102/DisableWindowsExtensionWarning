@@ -1,12 +1,22 @@
 from argparse import ArgumentParser
 import hashlib
 
-EXPECTED_ORIGINAL_SHA1 = 'd5685def0a05b5c96417d0b39bbf9eadfea7ded5'
-EXPECTED_OUTPUT_SHA1 = 'b0197090a6012b2865d7095c2cfc7a2ef8f08f96'
-ORIGINAL_BYTES = b'\x85\xc0\x78\x34' # TEST eax,eax; JS 0x34
-NEW_BYTES = b'\x48\x90\xeb\x34' # NOP; JMP 0x34
-OFFSET = 0x004D0A4C
-PATCH_LENGTH = 4
+versions = {
+    '6301dfa9754e7edc520c5d9eb3448fa38b3a4c05': {
+        'output': 'c429380c8578bdc1e99219403020458b9610a214',
+        'offset': 0x004DC63C,
+        'patch_length': 4,
+        'patch': b'\x48\x90\xeb\x34',
+        'version': "Windows 10 Home 22H2 build 19045.4529"
+    },
+    'd5685def0a05b5c96417d0b39bbf9eadfea7ded5': {
+        'output': 'b0197090a6012b2865d7095c2cfc7a2ef8f08f96',
+        'offset': 0x004D0A4C,
+        'patch_length': 4,
+        'patch': b'\x48\x90\xeb\x34',
+        'version': "Windows 10 Home 21H1 build 19043.1645"
+    }
+}
 
 parser = ArgumentParser(prog='WindowsExtWarnPatcher',
                      description='Patches windows.storage.dll to disable the extension warning',
@@ -24,15 +34,17 @@ if __name__ == '__main__':
         data = bytearray(dllfile.read())
 
     print('Checking hashes...')
-    if(hashlib.sha1(data).hexdigest() != EXPECTED_ORIGINAL_SHA1):
+    orig_hash = hashlib.sha1(data).hexdigest()
+    if orig_hash not in versions:
         print('ERROR: Hash mismatch. File was probably updated, submit an issue on github.')
         exit(0)
     else:
-        print('Hash OK')
+        current_ver = versions[orig_hash]
+        print(f'Hash OK, detected version: {current_ver["version"]}')
 
     print('Patching...')
-    for i in range(PATCH_LENGTH):
-        data[OFFSET+i] = NEW_BYTES[i]
+    for i in range(current_ver['patch_length']):
+        data[current_ver['offset']+i] = current_ver['patch'][i]
 
     print('Writing output...')
     with open(args.patched, 'wb') as newfile:
@@ -40,7 +52,7 @@ if __name__ == '__main__':
 
     with open(args.patched, 'rb') as newfile:
         print('Checking hashes...')
-        if(hashlib.sha1(newfile.read()).hexdigest() != EXPECTED_OUTPUT_SHA1):
+        if(hashlib.sha1(newfile.read()).hexdigest() != current_ver['output']):
             print('ERROR: Hash mismatch. Unknown error. DO NOT USE THE GENERATED FILE.')
             exit(0)
         else:
