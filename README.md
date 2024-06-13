@@ -11,4 +11,4 @@ This method works by patching a function in `Windows/System32/windows.storage.dl
 python3 patch.py [original DLL] [new DLL]
 ```
 
-Then take ownership of `windows.storage.dll` and replace it with the patched file.
+Then take ownership of `windows.storage.dll` and replace it with the patched file. Make sure to change the owner back to `TrustedInstaller` and set the permissions exactly as they were originally after you're done.
