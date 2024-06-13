@@ -13,4 +13,4 @@ Tested on Windows 10 21H1, build 19043.1645
 python3 patch.py [original DLL] [new DLL]
 ```
 
-Then take ownership of `windows.storage.dll` and replace it with the patched file. Make sure to change the owner back to `TrustedInstaller` and set the permissions exactly as they were originally after you're done.
+Then take ownership of `windows.storage.dll` and replace it with the patched file (You should probably be in safe mode). Make sure to change the owner back to `TrustedInstaller` and set the permissions exactly as they were originally after you're done.
