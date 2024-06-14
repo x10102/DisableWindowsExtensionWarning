@@ -3,7 +3,7 @@ Stop Windows from showing the annoying warning when changing file extensions
 
 This method works by patching a function in `Windows/System32/windows.storage.dll` to skip over a `ShellMessageBoxW` call and the subsequent check.
 
-Tested on Windows 10 21H1, build 19043.1645
+Tested on Windows 10 22H2, build 19043.1645. If you want support for another version, open an issue.
 
 # Usage
 > [!CAUTION]
