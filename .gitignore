@@ -3,3 +3,5 @@
 *.dll
 *.bak
 *.txt
+
+!res/*
