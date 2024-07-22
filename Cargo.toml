@@ -1,0 +1,13 @@
+[package]
+name = "winpatcher"
+version = "1.0.0"
+edition = "2021"
+description = "Applies a patch to windows.storage.dll to disable the extension warning"
+authors = ["x10102"]
+license = "WTFPL"
+repository = "https://github.com/x10102/DisableWindowsExtensionWarning"
+
+[dependencies]
+inline_colorization = "0.1.6"
+sha1_smol = { version = "1.0.1", features = ["std", "alloc"] }
+str-macro = "1.0.0"
