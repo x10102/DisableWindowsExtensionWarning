@@ -1,2 +1,5 @@
 /target
 .vscode
+*.dll
+*.bak
+*.txt
