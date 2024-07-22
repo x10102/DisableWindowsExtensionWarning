@@ -10,7 +10,10 @@ Tested on Windows 10 Home builds 19045.4529 and 19045.4651 so far, but should wo
 > Modifying system files always poses a risk of rendering your system unbootable. Make sure you have an up-to-date restore point, as well as a copy of the original DLL and another bootable drive in case things go wrong.
 
 ```cmd
-python3 patch.py [original DLL] [new DLL]
+patcher.exe [original DLL] [new DLL]
 ```
 
 Then take ownership of `windows.storage.dll` and replace it with the patched file (You should probably be in safe mode or booted from an installer ISO). Make sure to change the owner back to `TrustedInstaller` and set the permissions exactly as they were originally after you're done.
+
+# Building from source
+Just clone the repository and run `cargo build`.
