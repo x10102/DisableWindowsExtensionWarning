@@ -16,4 +16,4 @@ patcher.exe [original DLL] [new DLL]
 Then take ownership of `windows.storage.dll` and replace it with the patched file (You should probably be in safe mode or booted from an installer ISO). Make sure to change the owner back to `TrustedInstaller` and set the permissions exactly as they were originally after you're done.
 
 # Building from source
-Just clone the repository and run `cargo build`
+Just clone the repository and run `cargo build`.
