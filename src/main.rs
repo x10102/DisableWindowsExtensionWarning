@@ -1,6 +1,6 @@
 use bincode;
 use inline_colorization::*;
-use serde::Deserialize;
+use pelite::pe64::{exports::Export, Pe, PeFile, imports::Import};
 use sha1_smol::Sha1;
 use std::{
     collections::HashMap,
@@ -11,6 +11,12 @@ use std::{
 };
 
 const PATCH_DATA: &[u8] = include_bytes!("..\\res\\patches.bin");
+
+#[allow(dead_code)]
+const ORDINAL_NUMBER: u16 = 781;
+#[allow(dead_code)]
+const ORDINAL_OFFSET_1: u16 = 0;
+
 
 fn print_logo() {
     println!(
@@ -76,6 +82,50 @@ fn read_file(filename: &str, buffer: &mut Vec<u8>) {
 fn fail(message: &str) {
     println!("{color_red}=> {}{color_reset}", message);
     exit(-1);
+}
+
+#[allow(dead_code)]
+fn find_offset(dll_data: &Vec<u8>) {
+
+    let Ok(pe) = PeFile::from_bytes(&dll_data) else {
+        fail("Error parsing PE header, DLL is probably corrupted.");
+    };
+
+    let exports_by = pe.exports().unwrap().by().unwrap();
+    
+    if let Ok(imports) = pe.imports() {
+
+        for import in imports {
+            let dll_name = import.dll_name().unwrap().to_string();
+            if dll_name.contains("shlwapi") {
+                let iat = import.iat().unwrap();
+                let int = import.int().unwrap();
+
+                for (va, import) in Iterator::zip(iat, int) {
+                    if let Import::ByName { name, .. } = import.unwrap() {
+                        if name.to_str().unwrap() == "ShellMessageBoxW" {
+                            println!("{} found at 0x{:x}", name.to_str().unwrap(), va)
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        println!("No imports found in the target file.");
+    }
+
+    if let Ok(Export::Symbol(rva)) = exports_by.ordinal(ORDINAL_NUMBER) {
+        println!("RVA is 0x{:x}", rva.to_owned() as usize);
+
+
+        let offset = rva.to_owned() as usize;
+        println!(
+            "Offset is: 0x{:x} relative to the start of the DLL file",
+            offset
+        );
+    } else {
+        println!("Function not found in the export table");
+    }
 }
 
 fn main() {

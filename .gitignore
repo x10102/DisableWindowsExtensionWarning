@@ -3,5 +3,8 @@
 *.dll
 *.bak
 *.txt
+*.json
+*.bin
+*.2
 
 !res/*

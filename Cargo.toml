@@ -10,6 +10,7 @@ repository = "https://github.com/x10102/DisableWindowsExtensionWarning"
 [dependencies]
 bincode = "1.3.3"
 inline_colorization = "0.1.6"
+pelite = "0.10.0"
 serde = { version = "1.0.204", features = ["derive"] }
 sha1_smol = { version = "1.0.1", features = ["std", "alloc"] }
 str-macro = "1.0.0"
