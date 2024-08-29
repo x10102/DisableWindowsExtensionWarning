@@ -1,6 +1,7 @@
 use bincode;
 use inline_colorization::*;
 use pelite::pe64::{exports::Export, Pe, PeFile, imports::Import};
+use serde::{Deserialize, Serialize};
 use sha1_smol::Sha1;
 use std::{
     collections::HashMap,
@@ -26,13 +27,13 @@ fn print_logo() {
     );
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct Patch {
     offset: usize,
     data: Vec<u8>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct Version {
     name: String,
     patches: Vec<Patch>,
@@ -128,16 +129,44 @@ fn find_offset(dll_data: &Vec<u8>) {
     }
 }
 
-fn main() {
-    let versions = load_patches();
+fn bake_patch_file(input_file: &str, output_file: &str) -> ! {
+    println!("=> Reading {}...", input_file);
+    let mut buffer = Vec::new();
+    read_file(input_file, &mut buffer);
+    let Ok(json_str) = String::from_utf8(buffer) else {
+        fail("JSON file is unreadable");
+    };
+    let Ok(versions) = serde_json::from_str::<HashMap<String, Version>>(&json_str) else {
+        fail("JSON file has invalid syntax");
+    };
+    println!("=> Read success. Writing {}...", output_file);
+    let mut data = bincode::serialize(&versions).expect("Serialization error");
+    write_file(output_file, &mut data);
+    println!("{color_green}=> Done.{color_reset}");
+    exit(0);
+}
 
-    if env::args().len() != 3 {
+fn main() {
+
+    let versions = load_patches();
+    let argc = env::args().len();
+
+    if argc != 3 && argc != 4 {
         println!("Usage: patcher.exe [ORIGINAL DLL] [NEW DLL]");
         exit(-1);
     }
     print_logo();
 
     let args: Vec<String> = env::args().collect();
+
+    if args.len() == 4 {
+        if args[3] == "--bake-patches" {
+            bake_patch_file(&args[1], &args[2])
+        } else {
+            fail("Invalid arguments");
+        }
+    }
+
     let [_, original_filename, new_filename] = args.try_into().unwrap();
     let mut file_data: Vec<u8> = Vec::new();
 
@@ -147,7 +176,7 @@ fn main() {
 
     println!("=> Checking hash...");
     let hash = Sha1::from(&file_data).hexdigest();
-    let mut current_version = None;
+    let current_version;
 
     match versions.get(hash.as_str()) {
         Some(version) => current_version = Some(version),
