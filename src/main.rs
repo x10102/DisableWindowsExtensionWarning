@@ -150,6 +150,7 @@ fn main() {
 
     let versions = load_patches();
     let argc = env::args().len();
+    let mut sanity_check = true;
 
     if argc != 3 && argc != 4 {
         println!("Usage: patcher.exe [ORIGINAL DLL] [NEW DLL]");
@@ -160,14 +161,15 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() == 4 {
-        if args[3] == "--bake-patches" {
-            bake_patch_file(&args[1], &args[2])
-        } else {
-            fail("Invalid arguments");
+        match args[3].as_str() {
+            "--bake-patches" => bake_patch_file(&args[1], &args[2]),
+            "--skip-sanity-check" => {sanity_check = false},
+            _ => fail("Invalid arguments")
         }
     }
 
-    let [_, original_filename, new_filename] = args.try_into().unwrap();
+    let original_filename = &args[1];
+    let new_filename = &args[2];
     let mut file_data: Vec<u8> = Vec::new();
 
     println!("=> Reading {}...", original_filename);
@@ -202,10 +204,15 @@ fn main() {
     println!("=> Checking hash...");
     let hash = Sha1::from(&file_data).hexdigest();
     if current_version.final_hexdigest != hash.as_str() {
-        fail("Unknown error. Open an issue on GitHub.");
+        if sanity_check {
+            fail("Unknown error. Open an issue on GitHub.");
+        } else {
+            println!("{color_yellow}{bg_white}Sanity check failed but proceeding anyway. This should be used for debugging only.{bg_reset}{color_reset}")
+        }
+    } else {
+        println!("=> Hash OK.");
     }
-
-    println!("=> Hash OK.");
+    
     println!("=> Writing patched file to {}...", new_filename);
 
     write_file(&new_filename, &mut file_data);
