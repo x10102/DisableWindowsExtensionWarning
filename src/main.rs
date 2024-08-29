@@ -1,6 +1,6 @@
 use bincode;
 use inline_colorization::*;
-use pelite::pe64::{exports::Export, Pe, PeFile, imports::Import};
+use pelite::pe64::{exports::Export, imports::Import, Pe, PeFile};
 use serde::{Deserialize, Serialize};
 use sha1_smol::Sha1;
 use std::{
@@ -17,7 +17,6 @@ const PATCH_DATA: &[u8] = include_bytes!("..\\res\\patches.bin");
 const ORDINAL_NUMBER: u16 = 781;
 #[allow(dead_code)]
 const ORDINAL_OFFSET_1: u16 = 0;
-
 
 fn print_logo() {
     println!(
@@ -87,15 +86,13 @@ fn fail(message: &str) -> ! {
 
 #[allow(dead_code)]
 fn find_offset(dll_data: &Vec<u8>) {
-
     let Ok(pe) = PeFile::from_bytes(&dll_data) else {
         fail("Error parsing PE header, DLL is probably corrupted.");
     };
 
     let exports_by = pe.exports().unwrap().by().unwrap();
-    
-    if let Ok(imports) = pe.imports() {
 
+    if let Ok(imports) = pe.imports() {
         for import in imports {
             let dll_name = import.dll_name().unwrap().to_string();
             if dll_name.contains("shlwapi") {
@@ -117,7 +114,6 @@ fn find_offset(dll_data: &Vec<u8>) {
 
     if let Ok(Export::Symbol(rva)) = exports_by.ordinal(ORDINAL_NUMBER) {
         println!("RVA is 0x{:x}", rva.to_owned() as usize);
-
 
         let offset = rva.to_owned() as usize;
         println!(
@@ -147,7 +143,6 @@ fn bake_patch_file(input_file: &str, output_file: &str) -> ! {
 }
 
 fn main() {
-
     let versions = load_patches();
     let argc = env::args().len();
     let mut sanity_check = true;
@@ -163,8 +158,8 @@ fn main() {
     if args.len() == 4 {
         match args[3].as_str() {
             "--bake-patches" => bake_patch_file(&args[1], &args[2]),
-            "--skip-sanity-check" => {sanity_check = false},
-            _ => fail("Invalid arguments")
+            "--skip-sanity-check" => sanity_check = false,
+            _ => fail("Invalid arguments"),
         }
     }
 
@@ -207,12 +202,12 @@ fn main() {
         if sanity_check {
             fail("Unknown error. Open an issue on GitHub.");
         } else {
-            println!("{color_yellow}{bg_white}Sanity check failed but proceeding anyway. This should be used for debugging only.{bg_reset}{color_reset}")
+            println!("{color_red}{bg_white}Sanity check failed but proceeding anyway. This should be used for debugging only.{bg_reset}{color_reset}")
         }
     } else {
         println!("=> Hash OK.");
     }
-    
+
     println!("=> Writing patched file to {}...", new_filename);
 
     write_file(&new_filename, &mut file_data);
