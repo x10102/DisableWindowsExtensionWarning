@@ -79,7 +79,7 @@ fn read_file(filename: &str, buffer: &mut Vec<u8>) {
     }
 }
 
-fn fail(message: &str) {
+fn fail(message: &str) -> ! {
     println!("{color_red}=> {}{color_reset}", message);
     exit(-1);
 }
