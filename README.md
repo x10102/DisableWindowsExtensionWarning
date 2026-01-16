@@ -1,3 +1,6 @@
+> [!NOTE]
+> This repository is now archived. The [Windhawk mod](https://windhawk.net/mods/extension-change-no-warning) by [m417z](https://github.com/m417z) provides the same functionality while being less invasive and easier to use.
+
 # DisableWindowsExtensionWarning
 Stop Windows from showing the annoying warning when changing file extensions
 
